@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Set
+from typing import Set, cast
 import uuid
 
 class Node:
@@ -29,7 +29,10 @@ class Node:
 	def __eq__(self, node: object) -> bool:
 		if type(node) is not Node:
 			return False
-		return self._id == o._id
+		
+		# Cast for mypy
+		n: Node = cast(Node, node)
+		return self._id == n._id
 	
 	def add_parent(self, node: Node):
 		"""Adds node as parent, and self as child of parent. Assumes person can have multiple children (polygamy relationship?)"""
@@ -54,11 +57,11 @@ class Node:
 	
 	def siblings(self) -> Set:
 		"""Returns all siblings that have at least one parent in common"""
-		siblings = set()
+		siblings_set: Set[Node] = set()
 		for parent in self.parents:
-			siblings = siblings.union(parent.children)
-		siblings.remove(self)
-		return siblings
+			siblings_set = siblings_set.union(parent.children)
+		siblings_set.remove(self)
+		return siblings_set
 
 	def full_siblings(self) -> Set:
 		"""Returns all siblings that have all parents in common"""

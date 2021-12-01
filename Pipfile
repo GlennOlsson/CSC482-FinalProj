@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 python-gedcom = "*"
+mypy = "*"
+spacy = "*"
 
 [dev-packages]
 
