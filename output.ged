@@ -1,19 +1,22 @@
+0 HEAD
 0 @glenn@ INDI
 1 NAME Glenn Olsson
 2 SURN Olsson
 2 GIVN Harry
-1 FAMC @f1@
+1 FAMC @F1@
 0 @jonny@ INDI
 1 NAME Jonny Olsson
 2 SURN Olsson
 2 GIVN Jonny
-1 FAMS @f1@
+1 FAMS @F1@
 0 @tina@ INDI
 1 NAME Christina Carlsson
 2 SURN Carlsson
 2 GIVN Christina
-1 FAMS @f1@
-0 @f1@ FAM
+1 FAMS @F1@
+0 @F1@ FAM
 1 HUSB @jonny@
 1 WIFE @tina@
 1 CHIL @glenn@
+1 NCHI 3
+0 TRLR

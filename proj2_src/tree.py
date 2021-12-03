@@ -1,99 +1,108 @@
 from __future__ import annotations
-from typing import Set, cast
+from typing import Set, cast, Dict, Optional
 import uuid
 
-class Node:
-	# To keep track of unique nodes
-	_id: uuid.UUID
-
-	parents: Set[Node]
-	children: Set[Node]
-
-	name: str
-
-	def __init__(self, name: str):
-		print(f"CREATED NODE FOR {name}")
-		self._id = uuid.uuid4()
-		
-		self.parents = set()
-		self.children = set()
-
-		self.name = name
-
-	def __hash__(self) -> int:
-		return hash(self._id)
-
-	def __str__(self) -> str:
-		return f"Node({self.name}, {self._id})"
-	
-	def __eq__(self, node: object) -> bool:
-		if type(node) is not Node:
-			return False
-		
-		# Cast for mypy
-		n: Node = cast(Node, node)
-		return self._id == n._id
-	
-	def add_parent(self, node: Node):
-		"""Adds node as parent, and self as child of parent. Assumes person can have multiple children (polygamy relationship?)"""
-		self.parents.add(node)
-		# Cannot call add_parent as will recurse forever
-		node.children.add(self)
-	
-	def remove_parent(self, node: Node):
-		"""Removes node as parent, and self as child of parent"""
-		self.parents.remove(node)
-		node.children.remove(self)
-	
-	def add_child(self, node: Node):
-		"""Adds node as child, and self as parent of child"""
-		self.children.add(node)
-		node.parents.add(self)
-
-	def remove_child(self, node: Node):
-		"""Removes node as parent, and self as parent of child"""
-		self.children.remove(node)
-		node.parents.remove(self)
-	
-	def siblings(self) -> Set:
-		"""Returns all siblings that have at least one parent in common"""
-		siblings_set: Set[Node] = set()
-		for parent in self.parents:
-			siblings_set = siblings_set.union(parent.children)
-		siblings_set.remove(self)
-		return siblings_set
-
-	def full_siblings(self) -> Set:
-		"""Returns all siblings that have all parents in common"""
-		if len(self.parents) == 0:
-			return set()
-		parents_cp = self.parents.copy()
-
-		siblings: Set = parents_cp.pop().children
-		for parent in parents_cp:
-			siblings = siblings.intersection(parent.children)
-		siblings.remove(self)
-
-		return siblings
+from proj2_src.family import Family, Person
 class Tree:
-	root: Node
+	root: Family
 	
-	def __init__(self, root: Node):
+	def __init__(self, root: Family):
 		self.root = root
 	
-	def __iter__(self):
+	def people(self):
+		"""iterator for all people in tree, uncertain order"""
 		visited = set()
+		def _iterate(person: Person):
+			yield person
+			visited.add(person)
+			child_fam = person.child_family
+			if child_fam is not None:
+				for c in child_fam.children:
+					if c not in visited:
+						yield from _iterate(c)
+				sp1 = child_fam.spouse1
+				sp2 = child_fam.spouse2
 
-		def _iterate(node: Node):
-			"""yields node, then adds to visited set"""
-			yield node
-			visited.add(node)
-			for p in node.parents:
-				if p not in visited:
-					yield from _iterate(p)
+
+				
+				if sp1 is not None and sp1 not in visited:
+					yield from _iterate(sp1)
+				
+				if sp2 is not None and sp2 not in visited:
+					yield from _iterate(sp2)
 			
-			for c in node.children:
-				if c not in visited:
-					yield from _iterate(c)
+			parent_fams = person.parent_families
+			for p_fam in parent_fams:
+				for c in p_fam.children:
+					if c not in visited:
+						yield from _iterate(c)
+				sp1 = p_fam.spouse1
+				sp2 = p_fam.spouse2
+				
+				if sp1 is not None and sp1 not in visited:
+					yield from _iterate(sp1)
+				
+				if sp2 is not None and sp2 not in visited:
+					yield from _iterate(sp2)
+		
+		root_tree = self.root
 
-		return _iterate(self.root)
+		# Find some person to start with, all other will be visited eventually
+		if root_tree.spouse1 is not None:
+			return _iterate(root_tree.spouse1)
+		elif root_tree.spouse2 is not None:
+			return _iterate(root_tree.spouse2)
+		else:
+			for c in root_tree.children: # Will only go to first child, then break loop by returning
+				return _iterate(c)
+	
+	def __iter__(self):
+		"""Iterate trough all families in tree"""
+		visited = set() # Keep track of all families yielded
+
+		# Recursive generator for all families
+		def _iterate(person: Person):
+			"""yields family, then adds to visited set"""
+			# visited.add(person)
+			child_fam = person.child_family
+			if child_fam is not None and child_fam not in visited:
+
+				yield child_fam
+				visited.add(child_fam)
+
+				sp1 = child_fam.spouse1
+				sp2 = child_fam.spouse2
+
+				if sp1 is not None and sp1 not in visited:
+					yield from _iterate(sp1)
+				if sp2 is not None and sp2 not in visited:
+					yield from _iterate(sp2)
+				for c in child_fam.children:
+					if c not in visited:
+						yield from _iterate(c)
+
+			for parent_fam in person.parent_families:
+				yield parent_fam
+				visited.add(parent_fam)
+
+				sp1 = parent_fam.spouse1
+				sp2 = parent_fam.spouse2
+
+				if sp1 is not None and sp1 not in visited:
+					yield from _iterate(sp1)
+				if sp2 is not None and sp2 not in visited:
+					yield from _iterate(sp2)
+				for c in parent_fam.children:
+					if c not in visited:
+						yield from _iterate(c)
+
+		root_tree = self.root
+
+		# Find some person to start with, all other will be visited eventually
+		if root_tree.spouse1 is not None:
+			return _iterate(root_tree.spouse1)
+		elif root_tree.spouse2 is not None:
+			return _iterate(root_tree.spouse2)
+		else:
+			for c in root_tree.children: # Will only go to first child, then break loop by returning
+				return _iterate(c)
