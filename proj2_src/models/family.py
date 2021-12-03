@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional, Set, List, cast
 
 from uuid import UUID, uuid4
-from proj2_src.sex import approximate_sex, Sex
+from models.sex import approximate_sex, Sex
 
 def childs(p1: Optional[Person], p2: Optional[Person]) -> Set[Person]:
 	"""Returns children has between two people"""
@@ -32,7 +32,7 @@ class Person:
 	def __init__(self, name: str):
 		self.name = name
 		self._id = uuid4()
-		self.sex = approximate_sex(name)
+		self.sex = approximate_sex(name.split()[0]) # approximate for first name before space
 		
 		self.parent1 = None
 		self.parent2 = None
@@ -75,6 +75,11 @@ class Person:
 			families.add(c_fam)
 		
 		return families
+	
+	def pointer(self) -> str:
+		"""Return a suiting GEDCOM pointer"""
+		id_str = str(self._id)
+		return f'@{self.name.replace(" ", "")}{id_str.replace("-", "")}@'
 	
 	def __hash__(self) -> int:
 		return hash(self._id)
@@ -132,6 +137,13 @@ class Family:
 		i += len(self.children)
 
 		return i >= 2
+	
+	def pointer(self) -> str:
+		"""Return a suiting GEDCOM pointer"""
+		husb = self.husband.name if self.husband is not None else "NoHusb"
+		wife = self.wife.name if self.wife is not None else "NoWife"
+
+		return f'@{husb.replace(" ", "")}AND{wife.replace(" ", "")}@'
 	
 	def __eq__(self, o):
 		if type(o) is not Family:

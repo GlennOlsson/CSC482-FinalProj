@@ -1,20 +1,28 @@
+
+from models.family import Person, Family
+from models.tree import Tree
+
+from gd.gedcom import generate_gedcom
+
 from gedcom.element.element import Element
 from gedcom import tags
-# import wikipedia
-# from bs4 import BeautifulSoup
 
-# page = wikipedia.page("Barack Obama")
-# html = page.html()
+glenn_person = Person("Glenn Olsson")
 
-# soup = BeautifulSoup(html, "html.parser")
+glenn_dad_person = Person("Jonny Olsson")
+glenn_mom_person = Person("Christina Carlsson")
 
+glenn_sis1_person = Person("Josefine Törnqvist")
+glenn_sis2_person = Person("Camilla Olsson")
 
-# def generate_gedcom(tree):
-# 	gedcom.
-# 	node_elements: Dict[Node, ] = dict()
+glenn_person.add_parent(glenn_dad_person)
+glenn_person.add_parent(glenn_mom_person)
 
-e = Element(level=1, pointer="glenn", tag=tags.GEDCOM_TAG_CHILD, value="hej", crlf='\n', multi_line=True)
+glenn_dad_person.add_child(glenn_sis1_person)
+glenn_dad_person.add_child(glenn_sis2_person)
 
-parent = Element(level=2, pointer="glenn_dad", tag=tags.GEDCOM_TAG_FAMILY, value="Jonny", crlf='\n', multi_line=True)
-parent.add_child_element(e)
-print(parent.to_gedcom_string(recursive=True))
+glenn_mom_person.add_child(glenn_sis1_person)
+glenn_mom_person.add_child(glenn_sis2_person)
+
+glenn_tree = Tree(glenn_person)
+generate_gedcom(glenn_tree)
