@@ -1,10 +1,10 @@
-from models.tree import Tree
-from models.family import Person, Family
+from proj2_src.models.tree import Tree
+from proj2_src.models.family import Person, Family
 
 from typing import Optional, Set, List
 
-from gedcom.element.element import Element
-from gedcom import tags
+from gedcom.element.element import Element # type: ignore
+from gedcom import tags # type: ignore
 
 # 0 @glenn@ INDI
 # 1 NAME Glenn Olsson

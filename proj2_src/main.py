@@ -1,11 +1,8 @@
 
-from models.family import Person, Family
-from models.tree import Tree
+from proj2_src.models.family import Person, Family
+from proj2_src.models.tree import Tree
 
-from gd.gedcom import generate_gedcom
-
-from gedcom.element.element import Element
-from gedcom import tags
+from proj2_src.gd.gedcom import generate_gedcom
 
 glenn_person = Person("Glenn Olsson")
 

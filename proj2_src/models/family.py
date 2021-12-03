@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional, Set, List, cast
 
 from uuid import UUID, uuid4
-from models.sex import approximate_sex, Sex
+from proj2_src.models.sex import approximate_sex, Sex
 
 def childs(p1: Optional[Person], p2: Optional[Person]) -> Set[Person]:
 	"""Returns children has between two people"""

@@ -1,7 +1,7 @@
 import unittest
 from typing import List
-from proj2_src.tree import Tree
-from proj2_src.family import Family, Person
+from proj2_src.models.tree import Tree
+from proj2_src.models.family import Family, Person
 
 class TestTree(unittest.TestCase):
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Set, cast, Dict, Optional
 import uuid
 
-from models.family import Family, Person
+from proj2_src.models.family import Family, Person
 class Tree:
 	root: Person
 	

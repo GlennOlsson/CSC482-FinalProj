@@ -1,5 +1,5 @@
 import unittest
-from proj2_src.sex import approximate_sex, Sex
+from proj2_src.models.sex import approximate_sex, Sex
 
 class SexTest(unittest.TestCase):
 
