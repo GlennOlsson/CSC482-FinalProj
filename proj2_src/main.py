@@ -24,5 +24,13 @@ glenn_dad_person.add_child(glenn_sis2_person)
 glenn_mom_person.add_child(glenn_sis1_person)
 glenn_mom_person.add_child(glenn_sis2_person)
 
+glenn_granddad_person = Person("Harry Olsson")
+glenn_grandmom_person = Person("Yvonne Dahlsten")
+glenn_dad_person.add_parent(glenn_granddad_person)
+glenn_dad_person.add_parent(glenn_grandmom_person)
+
 glenn_tree = Tree(glenn_person)
-generate_gedcom(glenn_tree)
+gedcome_str = generate_gedcom(glenn_tree)
+
+with open("output.ged", "w") as f:
+	f.write(gedcome_str)
