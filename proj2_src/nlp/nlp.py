@@ -1,4 +1,4 @@
-from typing import Set
+from typing import Set, Optional
 
 import wikipedia
 import sys
@@ -125,7 +125,7 @@ def process_text(name, text):
 
 	person = Person(name)
 
-	parents, children, siblings =process_relation_sentences(familial_sentences)
+	parents, children, siblings = process_relation_sentences(familial_sentences)	
 
 	for p in parents:
 		person.add_parent(p)
@@ -137,7 +137,10 @@ def process_text(name, text):
 	
 	return Tree(person)
 
-def process_name(name) -> Tree:
-	wiki = wikipedia.page(name, auto_suggest=False)
-	text = wiki.content
-	return process_text(name, text)
+def process_name(name) -> Optional[Tree]:
+	try:
+		wiki = wikipedia.page(name, auto_suggest=False)
+		text = wiki.content
+		return process_text(name, text)
+	except:
+		return None

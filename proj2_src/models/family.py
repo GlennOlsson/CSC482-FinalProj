@@ -79,10 +79,13 @@ class Person:
 		
 		return families
 	
+	def identifier(self) -> str:
+		id_str = str(self._id).replace(".", "").replace("-", "")
+		return f'{self.name.replace(" ", "")}{id_str}'
+
 	def pointer(self) -> str:
 		"""Return a suiting GEDCOM pointer"""
-		id_str = str(self._id)
-		return f'@{self.name.replace(" ", "")}{id_str.replace("-", "")}@'
+		return f'@{self.identifier()}@'
 	
 	def __hash__(self) -> int:
 		return hash(self._id)

@@ -4,42 +4,81 @@ from proj2_src.models.tree import Tree
 
 from proj2_src.gd.gedcom import generate_gedcom
 
+from typing import Set, Tuple, Optional
+
 from proj2_src.nlp import nlp
 
-# glenn_person = Person("Glenn Olsson")
+import pydot
 
-# glenn_dad_person = Person("Jonny Olsson")
-# glenn_mom_person = Person("Christina Carlsson")
+# BarackObama66fe006eab49478fbaf58588900e3783 [shape=box, label = "Barack Obama", color = black];
+def person_dot(p: Person) -> str:
+	return f"{p.identifier()} [shape=box, label = \"{p.name}\", color = black];\n"
 
-# glenn_sis1_person = Person("Josefine Törnqvist")
-# glenn_sis2_person = Person("Camilla Olsson")
+def edge_dot(p1: Person, p2: Person) -> str:
+	return f"{p1.identifier()} -> {p2.identifier()} [dir=none];\n"
 
-# glenn_person.add_parent(glenn_dad_person)
-# glenn_person.add_parent(glenn_mom_person)
+def add_if_not_in(p1: Person, p2: Person, s: Set[Tuple[Person, Person]]):
+	if (p1, p2) not in s and (p2, p1) not in s:
+		s.add((p1, p2))
 
-# glenn_dad_person.add_child(glenn_sis1_person)
-# glenn_dad_person.add_child(glenn_sis2_person)
+def generate_dot(tree: Tree):
+	people: Set[Person] = set()
 
-# glenn_mom_person.add_child(glenn_sis1_person)
-# glenn_mom_person.add_child(glenn_sis2_person)
+	dot_str = """
+digraph
+{
+splines = ortho;
+"""
 
-# glenn_granddad_person = Person("Harry Olsson")
-# glenn_grandmom_person = Person("Yvonne Dahlsten")
-# glenn_dad_person.add_parent(glenn_granddad_person)
-# glenn_dad_person.add_parent(glenn_grandmom_person)
+	edges: Set[Tuple[Person, Person]] = set()
 
-# glenn_tree = Tree(glenn_person)
-# gedcome_str = generate_gedcom(glenn_tree)
+	for p in tree:
+		dot_str += person_dot(p)
 
-# with open("output.ged", "w") as f:
-# 	f.write(gedcome_str)
+		parent1 = p.parent1
+		parent2 = p.parent2
+		children = p.children
+
+		if parent1 is not None:
+			add_if_not_in(parent1, p, edges)
+
+		if parent2 is not None:
+			add_if_not_in(parent2, p, edges)
+
+		for c in children:
+			add_if_not_in(p, c, edges)
+	
+	dot_str += "\n"
+		
+	for p1, p2 in edges:
+		dot_str += edge_dot(p1, p2)
+	
+	dot_str += "}"
+
+	return dot_str
 
 def main():
-	# name = input("Please Enter a Name: ")
-	name = "Barack Obama"
-	tree = nlp.process_name(name)
+	name = input("Please Enter a Name: ")
+	# name = "Barack Obama"
+	tree: Optional[Tree] = nlp.process_name(name)
+
+	if tree is None:
+		print(f"Could not create tree for {name}")
+		return
 	
 	gedcome_str = generate_gedcom(tree)
 	with open("output.ged", "w") as f:
 		f.write(gedcome_str)
+	
+	dot_str = generate_dot(tree)
+	with open("output.dot", "w") as f:
+		f.write(dot_str)
+
+	(graph,) = pydot.graph_from_dot_file('output.dot')
+	graph.write_png('output.png')
+
+	print("DONE")
+	print("GEDCOM printed to output.ged")
+	print("Graphical representation printed to output.png")
+
 main()
