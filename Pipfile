@@ -7,6 +7,8 @@ name = "pypi"
 python-gedcom = "*"
 mypy = "*"
 spacy = "*"
+wikipedia = "*"
+nltk = "*"
 
 [dev-packages]
 

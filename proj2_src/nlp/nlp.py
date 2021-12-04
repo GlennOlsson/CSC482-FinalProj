@@ -1,15 +1,22 @@
+from typing import Set
+
 import wikipedia
 import sys
 import nltk
 from nltk.corpus import wordnet as wn
 import spacy
 import re
+
+from proj2_src.models.family import Person
+from proj2_src.models.tree import Tree
+from proj2_src.models.sex import Sex
+
 nlp = spacy.load("en_core_web_sm")
 def analyze_relations(filtered):
 	print("___________________________________RELATIONS______________________________________")
-	parents = set()
-	children = set()
-	siblings = set()
+	parents: Set[Person] = set()
+	children: Set[Person] = set()
+	siblings: Set[Person] = set()
 	for sentence in filtered:
 		words = nltk.word_tokenize(sentence)
 		pos = nltk.pos_tag(words)
@@ -27,7 +34,8 @@ def analyze_relations(filtered):
 					for a in analzyed.ents:
 						if a.label_ == "PERSON":
 							print(a.text)
-							parents.add(("Mother", a.text))
+							mother = Person(a.text, sex=Sex.female)
+							parents.add(mother)
 		for i in range(len(pos)):
 			if pos[i][0] == "father":
 				flag = True
@@ -42,7 +50,8 @@ def analyze_relations(filtered):
 					for a in analzyed.ents:
 						if a.label_ == "PERSON":
 							print(a.text)
-							parents.add(("Father", a.text))
+							father = Person(a.text, sex=Sex.male)
+							parents.add(father)
 		for i in range(len(pos)):
 			if pos[i][0] == "daughter":
 				print(sentence)
@@ -60,9 +69,17 @@ def analyze_relations(filtered):
 					for a in analzyed.ents:
 						if a.label_ == "PERSON":
 							print(a.text)
-							children.add(("Daughter", a.text))
+							daughter = Person(a.text, sex=Sex.female)
+							children.add(daughter)
 	print(parents)
 	print(children)
+	print(siblings)
+
+	return parents, children, siblings
+
+def convert_to_tree(parents, children, siblings):
+	pass
+
 def process_relation_sentences(sentences):
 	print("___________________________________FILTERED______________________________________")
 	filtered = set()
@@ -74,7 +91,11 @@ def process_relation_sentences(sentences):
 	for sentence in filtered:
 		print(sentence)
 		print("________________________________")
-	parents, children, siblings = analyze_relations(filtered)
+	
+	return analyze_relations(filtered)
+
+	# TODO - GLENN: CONVERT TO TREE
+
 def process_text(name, text):
 	sentences = nltk.sent_tokenize(text)
 	father_synset = wn.synset("father.n.01")
@@ -101,18 +122,22 @@ def process_text(name, text):
 	for sentence in familial_sentences:
 		print(sentence)
 		print("________________________________")
-	process_relation_sentences(familial_sentences)
-def process_name(name):
+
+	person = Person(name)
+
+	parents, children, siblings =process_relation_sentences(familial_sentences)
+
+	for p in parents:
+		person.add_parent(p)
+		for sib in siblings:
+			p.add_child(sib)
+	
+	for c in children:
+		person.add_child(c)
+	
+	return Tree(person)
+
+def process_name(name) -> Tree:
 	wiki = wikipedia.page(name, auto_suggest=False)
 	text = wiki.content
-	process_text(name, text)
-def main():
-	if len(sys.argv) == 1:
-		name = input("Please Enter a Name: ")
-		process_name(name)
-	elif len(sys.argv) == 2:
-		return
-	else:
-		sys.exit("Usage: python3 test.py [file.txt]")
-if __name__ == "__main__":
-	main()
+	return process_text(name, text)

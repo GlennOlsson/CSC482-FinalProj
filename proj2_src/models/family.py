@@ -29,11 +29,14 @@ class Person:
 
 	children: Set[Person]
 
-	def __init__(self, name: str):
+	def __init__(self, name: str, sex: Optional[Sex] = None):
 		self.name = name
 		self._id = uuid4()
-		self.sex = approximate_sex(name.split()[0]) # approximate for first name before space
-		
+		if sex is None:
+			self.sex = approximate_sex(name.split()[0]) # approximate for first name before space
+		else:
+			self.sex = sex
+
 		self.parent1 = None
 		self.parent2 = None
 

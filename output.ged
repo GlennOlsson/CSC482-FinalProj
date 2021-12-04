@@ -1,34 +1,22 @@
 0 HEAD
-0 @GlennOlssonde10007a36cd483c854998fb6a5cd2dc@ INDI
-1 NAME Glenn Olsson
-1 FAMC @JonnyOlssonANDChristinaCarlsson@
-0 @JonnyOlsson53609a9ce13d43428d2ecb74209f6012@ INDI
-1 NAME Jonny Olsson
-1 FAMS @JonnyOlssonANDChristinaCarlsson@
-1 FAMC @HarryOlssonANDYvonneDahlsten@
-0 @HarryOlsson3c77f2e819ab46b5a83786ada792b171@ INDI
-1 NAME Harry Olsson
-1 FAMS @HarryOlssonANDYvonneDahlsten@
-0 @YvonneDahlstenb12095893f1445a7b2abc1f584fd5967@ INDI
-1 NAME Yvonne Dahlsten
-1 FAMS @HarryOlssonANDYvonneDahlsten@
-0 @CamillaOlsson9c9919b998a1485f8b879f71a0e2d3c1@ INDI
-1 NAME Camilla Olsson
-1 FAMC @JonnyOlssonANDChristinaCarlsson@
-0 @ChristinaCarlsson4ed330efbab64d4980babed80cf16c77@ INDI
-1 NAME Christina Carlsson
-1 FAMS @JonnyOlssonANDChristinaCarlsson@
-0 @JosefineTörnqvist02f4247721454dd38df7b4f4c449b2af@ INDI
-1 NAME Josefine Törnqvist
-1 FAMC @JonnyOlssonANDChristinaCarlsson@
-0 @HarryOlssonANDYvonneDahlsten@ FAM
-1 HUSB @HarryOlsson3c77f2e819ab46b5a83786ada792b171@
-1 WIFE @YvonneDahlstenb12095893f1445a7b2abc1f584fd5967@
-1 CHIL @JonnyOlsson53609a9ce13d43428d2ecb74209f6012@
-0 @JonnyOlssonANDChristinaCarlsson@ FAM
-1 HUSB @JonnyOlsson53609a9ce13d43428d2ecb74209f6012@
-1 WIFE @ChristinaCarlsson4ed330efbab64d4980babed80cf16c77@
-1 CHIL @GlennOlssonde10007a36cd483c854998fb6a5cd2dc@
-1 CHIL @CamillaOlsson9c9919b998a1485f8b879f71a0e2d3c1@
-1 CHIL @JosefineTörnqvist02f4247721454dd38df7b4f4c449b2af@
+0 @BarackObama66fe006eab49478fbaf58588900e3783@ INDI
+1 NAME Barack Obama
+1 FAMC @BarackObamaSr.ANDAnnDunham@
+1 FAMS @BarackObamaANDNoWife@
+0 @AnnDunhamfb11aeae6ff64d778f2d97952dba0392@ INDI
+1 NAME Ann Dunham
+1 FAMS @BarackObamaSr.ANDAnnDunham@
+0 @BarackObamaSr.cffec90f337146aabe60a0c2c88747fd@ INDI
+1 NAME Barack Obama Sr.
+1 FAMS @BarackObamaSr.ANDAnnDunham@
+0 @MaliaAnnd980feb2a89d4a47890ccb2a65271025@ INDI
+1 NAME Malia Ann
+1 FAMC @BarackObamaANDNoWife@
+0 @BarackObamaSr.ANDAnnDunham@ FAM
+1 HUSB @BarackObamaSr.cffec90f337146aabe60a0c2c88747fd@
+1 WIFE @AnnDunhamfb11aeae6ff64d778f2d97952dba0392@
+1 CHIL @BarackObama66fe006eab49478fbaf58588900e3783@
+0 @BarackObamaANDNoWife@ FAM
+1 HUSB @BarackObama66fe006eab49478fbaf58588900e3783@
+1 CHIL @MaliaAnnd980feb2a89d4a47890ccb2a65271025@
 0 TRLR
