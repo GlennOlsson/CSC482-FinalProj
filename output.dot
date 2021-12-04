@@ -2,10 +2,10 @@
 digraph
 {
 splines = ortho;
-MichaelJacksonc679d0b475de43658faef69b80cd0d4e [shape=box, label = "Michael Jackson", color = black];
-JosephWalter6721326e1153473b97df2a1d116b847a [shape=box, label = "Joseph Walter", color = black];
-KatherineEstherJacksonfe580cd3591d4683aea2c9fe3b33faa2 [shape=box, label = "Katherine Esther Jackson", color = black];
+ElonMusk31910f36216d450fbc3003fcd4954950 [shape=box, label = "Elon Musk", color = black];
+MayeMusk5999521dd1c74d008b654ceed5f88440 [shape=box, label = "Maye Musk", color = black];
+ErrolMuskd66ab667b26240c5ae9afcc36f08d639 [shape=box, label = "Errol Musk", color = black];
 
-JosephWalter6721326e1153473b97df2a1d116b847a -> MichaelJacksonc679d0b475de43658faef69b80cd0d4e [dir=none];
-KatherineEstherJacksonfe580cd3591d4683aea2c9fe3b33faa2 -> MichaelJacksonc679d0b475de43658faef69b80cd0d4e [dir=none];
+MayeMusk5999521dd1c74d008b654ceed5f88440 -> ElonMusk31910f36216d450fbc3003fcd4954950 [dir=none];
+ErrolMuskd66ab667b26240c5ae9afcc36f08d639 -> ElonMusk31910f36216d450fbc3003fcd4954950 [dir=none];
 }

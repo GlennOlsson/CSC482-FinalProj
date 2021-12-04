@@ -59,7 +59,7 @@ splines = ortho;
 
 def main():
 	name = input("Please Enter a Name: ")
-	# name = "Barack Obama"
+	# name = "Carl XVI Gustaf"
 	tree: Optional[Tree] = nlp.process_name(name)
 
 	if tree is None:

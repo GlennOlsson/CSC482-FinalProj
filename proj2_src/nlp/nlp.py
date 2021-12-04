@@ -6,71 +6,111 @@ import nltk
 from nltk.corpus import wordnet as wn
 import spacy
 import re
+from enum import Enum
 
 from proj2_src.models.family import Person
 from proj2_src.models.tree import Tree
 from proj2_src.models.sex import Sex
 
 nlp = spacy.load("en_core_web_sm")
+
+father_synset = wn.synset("father.n.01")
+mother_synset = wn.synset("mother.n.01")
+parent_synset = wn.synset("parent.n.01")
+son_synset = wn.synset("son.n.01")
+daughter_synset = wn.synset("daughter.n.01")
+child_synset = wn.synset("child.n.01")
+brother_synset = wn.synset("brother.n.01")
+sister_synset = wn.synset("sister.n.01")
+sibling_synset = wn.synset("sibling.n.01")
+
+parent_synsets = [
+	father_synset,
+	mother_synset,
+	parent_synset
+]
+
+child_synsets = [
+	son_synset,
+	daughter_synset,
+	child_synset
+]
+
+sibling_synsets = [
+	brother_synset,
+	sister_synset,
+	sibling_synset
+]
+
+
+all_synsets = [father_synset,
+	mother_synset,
+	parent_synset,
+	son_synset,
+	daughter_synset,
+	child_synset,
+	brother_synset,
+	sister_synset,
+	sibling_synset
+]
+
+def names_with_synset(sentence, compare_synsets) -> Set[str]:
+	words = nltk.word_tokenize(sentence)
+	pos = nltk.pos_tag(words)
+
+	s = set()
+
+	print("Names with syn: ", sentence, compare_synsets)
+
+	for i in range(len(words)):
+		synsets = nltk.corpus.wordnet.synsets(words[i])
+		if "Victoria" in sentence:
+			print("VIKKAN", words[i], synsets)
+		for synset in synsets:
+			if synset in compare_synsets:
+				print("IS IN COMPARE SYNSETS")
+				has_near_nn = True
+				sample_i_l = i+1
+				sample_i_h = i+5
+				for j in range(sample_i_l, sample_i_h):
+					if j < len(pos) and pos[j][1] == "NN":
+						pass
+						print("HAS NEAR NN??")
+						has_near_nn = False
+						break
+				if has_near_nn and (pos[i-1][1] == "PRP$" or pos[i-2][1] == "NNP"):
+					print("CLOSE TO PRP and NNP")
+					sample = words[sample_i_l - 1: sample_i_h]
+					sample = " ".join(sample).strip()
+					print(f"ANALYSING -{sample}-")
+					analzyed = nlp(sample)
+					print("Analyzed!! ", analzyed, analzyed.ents)
+					for a in analzyed.ents:
+						print("ENT: ", a.text, a.label_)
+						if a.label_ == "PERSON":
+							print("ACCEPTING", a.text)
+							s.add(a.text)
+							# return a.text
+	return s
+
 def analyze_relations(filtered):
-	print("___________________________________RELATIONS______________________________________")
-	parents: Set[Person] = set()
-	children: Set[Person] = set()
-	siblings: Set[Person] = set()
+	parent_names: Set[str] = set()
+	children_names: Set[str] = set()
+	sibling_names: Set[str] = set()
 	for sentence in filtered:
-		words = nltk.word_tokenize(sentence)
-		pos = nltk.pos_tag(words)
-		for i in range(len(pos)):
-			if pos[i][0] == "mother":
-				flag = True
-				for j in range(i+1, i+5):
-					if j < len(pos):
-						if pos[j][1] == "NN":
-							flag = False
-				if (pos[i-1][1] == "PRP$" or pos[i-2][1] == "NNP") and flag:
-					sample = words[i+1:i+5]
-					sample = " ".join(sample)
-					analzyed = nlp(sample)
-					for a in analzyed.ents:
-						if a.label_ == "PERSON":
-							print(a.text)
-							mother = Person(a.text, sex=Sex.female)
-							parents.add(mother)
-		for i in range(len(pos)):
-			if pos[i][0] == "father":
-				flag = True
-				for j in range(i+1, i+5):
-					if j < len(pos):
-						if pos[j][1] == "NN":
-							flag = False
-				if (pos[i-1][1] == "PRP$" or pos[i-2][1] == "NNP") and flag:
-					sample = words[i+1:i+5]
-					sample = " ".join(sample)
-					analzyed = nlp(sample)
-					for a in analzyed.ents:
-						if a.label_ == "PERSON":
-							print(a.text)
-							father = Person(a.text, sex=Sex.male)
-							parents.add(father)
-		for i in range(len(pos)):
-			if pos[i][0] == "daughter":
-				print(sentence)
-				print(pos)
-				print("________________________________")
-				flag = True
-				for j in range(i+1, i+5):
-					if j < len(pos):
-						if pos[j][1] == "NN":
-							flag = False
-				if (pos[i-1][1] == "PRP$" or pos[i-3][1] == "NN") and flag:
-					sample = words[i+1:i+5]
-					sample = " ".join(sample)
-					analzyed = nlp(sample)
-					for a in analzyed.ents:
-						if a.label_ == "PERSON":
-							print(a.text)
-							daughter = Person(a.text, sex=Sex.female)
-							children.add(daughter)
+		parent_names.update(names_with_synset(sentence, parent_synsets))
+		children_names.update(names_with_synset(sentence, child_synsets))
+		sibling_names.update(names_with_synset(sentence, sibling_synsets))
+
+	new_parents = [Person(name) for name in parent_names]
+	parents = set(new_parents)
+
+	new_childrens = [Person(name) for name in children_names]
+	children = set(new_childrens)
+
+	new_siblings = [Person(name) for name in sibling_names]
+	siblings = set(new_siblings)
+
 	print(parents)
 	print(children)
 	print(siblings)
@@ -94,19 +134,9 @@ def process_relation_sentences(sentences):
 	
 	return analyze_relations(filtered)
 
-	# TODO - GLENN: CONVERT TO TREE
-
 def process_text(name, text):
 	sentences = nltk.sent_tokenize(text)
-	father_synset = wn.synset("father.n.01")
-	mother_synset = wn.synset("mother.n.01")
-	parent_synset = wn.synset("parent.n.01")
-	son_synset = wn.synset("son.n.01")
-	daughter_synset = wn.synset("daughter.n.01")
-	child_synset = wn.synset("child.n.01")
-	brother_synset = wn.synset("brother.n.01")
-	sister_synset = wn.synset("sister.n.01")
-	sibling_synset = wn.synset("sibling.n.01")
+
 	familial_sentences = set()
 	for sentence in sentences:
 		tokens = nltk.word_tokenize(sentence)
@@ -115,7 +145,7 @@ def process_text(name, text):
 			for synset in synsets:
 				hypernyms = synset.hypernyms()
 				#if synset == son_synset or son_synset in hypernyms or synset == daughter_synset or daughter_synset in hypernyms or synset == child_synset or child_synset in hypernyms or synset == father_synset or father_synset in hypernyms or synset == mother_synset or mother_synset in hypernyms or synset == parent_synset or parent_synset in hypernyms:
-				if synset == son_synset or synset == daughter_synset or synset == child_synset or synset == father_synset or synset == mother_synset or synset == parent_synset or synset == brother_synset or synset == sister_synset or synset == sibling_synset:
+				if synset in all_synsets:
 				#if synset in child_synset or child_synset in hypernyms or synset == parent_synset or parent_synset in hypernyms:
 				#if synset == son_synset or son_synset in hypernyms or synset == daughter_synset or daughter_synset in hypernyms or hypernyms or synset == father_synset or father_synset in hypernyms or synset == mother_synset or mother_synset in hypernyms:
 					familial_sentences.add(sentence)
@@ -142,5 +172,6 @@ def process_name(name) -> Optional[Tree]:
 		wiki = wikipedia.page(name, auto_suggest=False)
 		text = wiki.content
 		return process_text(name, text)
-	except:
+	except Exception as e:
+		print(e)
 		return None
