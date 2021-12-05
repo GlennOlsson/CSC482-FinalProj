@@ -9,7 +9,6 @@ mypy = "*"
 spacy = "*"
 wikipedia = "*"
 nltk = "*"
-pydot = "*"
 
 [dev-packages]
 
