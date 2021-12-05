@@ -8,8 +8,6 @@ from typing import Set, Tuple, Optional
 
 from proj2_src.nlp import nlp
 
-import pydot
-
 # BarackObama66fe006eab49478fbaf58588900e3783 [shape=box, label = "Barack Obama", color = black];
 def person_dot(p: Person) -> str:
 	return f"{p.identifier()} [shape=box, label = \"{p.name}\", color = black];\n"
@@ -58,27 +56,42 @@ splines = ortho;
 	return dot_str
 
 def main():
-	name = input("Please Enter a Name: ")
-	# name = "Carl XVI Gustaf"
-	tree: Optional[Tree] = nlp.process_name(name)
+	try:
+		name = input("Please Enter a Name: ")
+		# name = "Carl XVI Gustaf"
+		tree: Optional[Tree] = nlp.process_name(name)
 
-	if tree is None:
-		print(f"Could not create tree for {name}")
-		return
-	
-	gedcome_str = generate_gedcom(tree)
-	with open("output.ged", "w") as f:
-		f.write(gedcome_str)
-	
-	dot_str = generate_dot(tree)
-	with open("output.dot", "w") as f:
-		f.write(dot_str)
+		if tree is None:
+			print(f"Could not create tree for {name}")
+			return
+		
+		gedcome_str = generate_gedcom(tree)
+		with open("output.ged", "w") as f:
+			f.write(gedcome_str)
 
-	(graph,) = pydot.graph_from_dot_file('output.dot')
-	graph.write_png('output.png')
+		print("GEDCOM printed to output.ged")
+		
+		dot_str = generate_dot(tree)
+		with open("output.dot", "w") as f:
+			f.write(dot_str)
+		
+		print("dot format printed to output.dot")
 
-	print("DONE")
-	print("GEDCOM printed to output.ged")
-	print("Graphical representation printed to output.png")
+		# Requires Graphviz to run
+		try:
+			# (graph,) = pydot.graph_from_dot_file('output.dot')
+			# graph.write_png('output.png')
+
+			# Using the library generated some extra circle for some reason... 
+
+			import subprocess
+			subprocess.run(["dot", "-Tpng", "output.dot", "-o", "output.png"])
+			print("Graphical representation printed to output.png")
+		except:
+			print("Could not save as png")
+
+		print("DONE")
+	except:
+		print("Sorry, I am afraid I can't do that")
 
 main()
