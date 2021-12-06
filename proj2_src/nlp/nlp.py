@@ -66,9 +66,6 @@ def names_with_synset(sentence, compare_synsets) -> Set[str]:
 
 	s = set()
 
-	if DEBUG:
-		print("Names with syn: ", sentence, compare_synsets)
-
 	for i in range(len(words)):
 		synsets = nltk.corpus.wordnet.synsets(words[i])
 		for synset in synsets:
@@ -83,17 +80,9 @@ def names_with_synset(sentence, compare_synsets) -> Set[str]:
 				if has_near_nn and (pos[i-1][1] == "PRP$" or pos[i-2][1] == "NNP"):
 					sample = words[sample_i_l - 1: sample_i_h]
 					sample = " ".join(sample).strip()
-					if DEBUG:
-						print(f"ANALYSING -{sample}-")
 					analzyed = nlp(sample)
-					if DEBUG:
-						print("Analyzed!! ", analzyed, analzyed.ents)
 					for a in analzyed.ents:
-						if DEBUG:
-							print("ENT: ", a.text, a.label_)
 						if a.label_ == "PERSON":
-							if DEBUG:
-								print("ACCEPTING", a.text)
 							s.add(a.text)
 							# return a.text
 	return s
@@ -119,10 +108,6 @@ def check_not_about_person(text, person):
 	""" 
 
 	r = f"{person}\Ws"
-	# person + "\w"
-	# regex = re.compile(r)
-
-	# print("REGG: ", text, person, re.findall(r, text))
 
 	return len(re.findall(r, text)) == 0
 
@@ -136,45 +121,37 @@ def check_regex(person: str, sentence: str, s: Set[str]):
 
 	matches = regex.findall(sentence)
 	for match in matches:
-		# if "(" in match or ")" in match:
-		# 	match = re.sub(r'\([^)]*\)', '', match)
 		analyzed = nlp(match)
 		for a in analyzed.ents:
 			if a.label_ == "PERSON":
-				# print("MAYA:_", sentence, person, a.text)
-				# print("SASHA:: ", [(a.text, a.label_) for a in analyzed.ents])
 				s.add(a.text)
 
 def analyze_relations_2(name, filtered: List[str]):
 	# I think this works better than the other one. Following this, after a match is found need to go back
 	# and check the sentence to ensure it is a good match. For instance, still getting grandomther as motehr. 
 	# That needs to be filtered out.
-	print("___________________________________RELATIONS 2______________________________________")
 	parents: Set[str] = set()
 	children: Set[str] = set()
 	siblings: Set[str] = set()
 	for sentence in filtered: 
 		sanitized_sentence = sentence.replace("Sr.", "Sr").replace("Jr.", "Jr")
-		print("SAN: ", sanitized_sentence)
 
-		check_regex("daughter", sentence, children)
-		check_regex("son", sentence, children)
-		check_regex("child", sentence, children)
-		check_regex("children", sentence, children)
+		check_regex("daughter", sanitized_sentence, children)
+		check_regex("son", sanitized_sentence, children)
+		check_regex("child", sanitized_sentence, children)
+		check_regex("children", sanitized_sentence, children)
 
-		check_regex("father", sentence, parents)
-		check_regex("mother", sentence, parents)
+		check_regex("father", sanitized_sentence, parents)
+		check_regex("mother", sanitized_sentence, parents)
 
-		check_regex("brother", sentence, siblings)
-		check_regex("sister", sentence, siblings)
-		check_regex("sibling", sentence, siblings)
+		check_regex("brother", sanitized_sentence, siblings)
+		check_regex("sister", sanitized_sentence, siblings)
+		check_regex("sibling", sanitized_sentence, siblings)
 
 	return parents, children, siblings
 
 def process_relation_sentences(name, sentences):
 	"""Filters out sentences that does not contain a name, based on SpaCy. Returns set of sentences"""
-	if DEBUG:
-		print("___________________________________FILTERED______________________________________")
 	filtered = set()
 	for sentence in sentences:
 		# Remove all "(born 2012) etc"
@@ -184,11 +161,6 @@ def process_relation_sentences(name, sentences):
 			if a.label_ == "PERSON" or a.label_ == "ORG":
 				filtered.add(sentence)
 				break
-	for sentence in filtered:
-		if DEBUG:
-			print(sentence)
-		if DEBUG:
-			print("________________________________")
 	
 	parents_1, children_1, siblings_1 = analyze_relations_2(name, filtered)
 
@@ -204,24 +176,6 @@ def process_text(name, text):
 	"""Takes name and text, sees what sentences are relevant and returns a Tree of
 	parents, children and siblings"""
 	sentences = nltk.sent_tokenize(text)
-
-	# familial_sentences = set()
-	# for sentence in sentences:
-	# 	tokens = nltk.word_tokenize(sentence)
-	# 	for token in tokens:
-	# 		synsets = nltk.corpus.wordnet.synsets(token)
-	# 		for synset in synsets:
-	# 			hypernyms = synset.hypernyms()
-	# 			#if synset == son_synset or son_synset in hypernyms or synset == daughter_synset or daughter_synset in hypernyms or synset == child_synset or child_synset in hypernyms or synset == father_synset or father_synset in hypernyms or synset == mother_synset or mother_synset in hypernyms or synset == parent_synset or parent_synset in hypernyms:
-	# 			if synset in all_synsets:
-	# 			#if synset in child_synset or child_synset in hypernyms or synset == parent_synset or parent_synset in hypernyms:
-	# 			#if synset == son_synset or son_synset in hypernyms or synset == daughter_synset or daughter_synset in hypernyms or hypernyms or synset == father_synset or father_synset in hypernyms or synset == mother_synset or mother_synset in hypernyms:
-	# 				familial_sentences.add(sentence)
-	# for sentence in familial_sentences:
-	# 	if DEBUG:
-		# print(sentence)
-	# 	if DEBUG:
-		# print("________________________________")
 
 	person = Person(name)
 

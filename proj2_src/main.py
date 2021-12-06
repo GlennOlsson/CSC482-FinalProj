@@ -64,6 +64,8 @@ def main():
 			print("Must input a name")
 			main()
 			return
+		
+		print(f"Creating tree for {name}")
 
 		tree: Optional[Tree] = nlp.process_name(name)
 
