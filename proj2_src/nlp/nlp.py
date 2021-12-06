@@ -118,45 +118,31 @@ def check_not_about_person(text, person):
 	returns true if it is not describing, i.e. we want it
 	""" 
 
-	r1 = f"{person}'s"
+	r = f"{person}\Ws"
+	# person + "\w"
+	# regex = re.compile(r)
 
-	# print("...", r1, r2, text, re.match(r1, text))
+	# print("REGG: ", text, person, re.findall(r, text))
 
-	return re.match(r1, text) is None# and re.match(r2, text) is None
+	return len(re.findall(r, text)) == 0
 
-	# for i in range(len(text)):
-	# 	if text[i] in match:
-	# 		sample = text[:i]
-	# 		# my_reg = f" + match
-	# 		#print(my_reg)
-	# 		match_1 = re.match(my_reg, text) #.[^,.]+[,.]
-	# 		match_2 = re.match(r"[^ ]+'s", text)
-	# 		if match_1 is not None:
-	# 			#print("______________________CHECK___________________________")
-	# 			#print(match_1.group(0))
-	# 			#print(match_2.group(0))
-	# 			for part in name:
-	# 				if part in match_2.group(0):
-	# 					return False
-	# return True
-	# 		#for part in name:
-	# 		#    if name in match_1
-	# 		#match_2.strip("'s")
 
 def check_regex(person: str, sentence: str, s: Set[str]):
 	if not check_not_about_person(sentence, person):
 		return
 
-	regex = f"[- ]{person}s?[^.]+[,.]"
+	r = f"[- ]{person}s?[,:; ][^;.]+[,.;]"
+	regex = re.compile(r)
 
-	matches = re.findall(regex, sentence)
+	matches = regex.findall(sentence)
 	for match in matches:
-		if "(" in match or ")" in match:
-			match = re.sub(r'\([^)]*\)', '', match)
+		# if "(" in match or ")" in match:
+		# 	match = re.sub(r'\([^)]*\)', '', match)
 		analyzed = nlp(match)
 		for a in analyzed.ents:
 			if a.label_ == "PERSON":
-				print("MAYA:_", sentence, person, a.text)
+				# print("MAYA:_", sentence, person, a.text)
+				# print("SASHA:: ", [(a.text, a.label_) for a in analyzed.ents])
 				s.add(a.text)
 
 def analyze_relations_2(name, filtered: List[str]):
@@ -194,10 +180,7 @@ def process_relation_sentences(name, sentences):
 		# Remove all "(born 2012) etc"
 		sentence = re.sub(r' \(born \d+\)', '', sentence)
 		analyzed = nlp(sentence)
-		max_people_dist = 3
-		curr_people_dist = 0
 		for a in analyzed.ents:
-			curr_people_dist += 1
 			if a.label_ == "PERSON" or a.label_ == "ORG":
 				filtered.add(sentence)
 				break
@@ -211,7 +194,7 @@ def process_relation_sentences(name, sentences):
 
 	parents_2, children_2, siblings_2 = analyze_relations(filtered)
 
-	parents = parents_1.union(parents_2)
+	parents = parents_2 #parents_1.union(parents_2)
 	children = children_1.union(children_2)
 	siblings = siblings_1.union(siblings_2)
 
