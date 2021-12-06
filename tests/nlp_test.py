@@ -1,5 +1,5 @@
 import unittest
-from proj2_src.nlp.nlp import names_with_synset ,analyze_relations ,convert_to_tree ,process_relation_sentences ,process_text ,process_name
+from proj2_src.nlp.nlp import names_with_synset ,analyze_relations ,process_relation_sentences ,process_text ,process_name
 
 class NLPTest(unittest.TestCase):
 

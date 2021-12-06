@@ -98,7 +98,6 @@ def main():
 		except:
 			print("Could not save as png")
 
-		print("DONE")
 	except:
 		print("Sorry, I am afraid I can't do that")
 
