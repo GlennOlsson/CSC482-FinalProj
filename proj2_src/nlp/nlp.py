@@ -108,28 +108,132 @@ def analyze_relations(filtered):
 		children_names.update(names_with_synset(sentence, child_synsets))
 		sibling_names.update(names_with_synset(sentence, sibling_synsets))
 
-	new_parents = [Person(name) for name in parent_names]
-	parents = set(new_parents)
+	# new_parents = [Person(name) for name in parent_names]
+	# parents = set(new_parents)
 
-	new_childrens = [Person(name) for name in children_names]
-	children = set(new_childrens)
+	# new_childrens = [Person(name) for name in children_names]
+	# children = set(new_childrens)
 
-	new_siblings = [Person(name) for name in sibling_names]
-	siblings = set(new_siblings)
+	# new_siblings = [Person(name) for name in sibling_names]
+	# siblings = set(new_siblings)
 
-	if DEBUG:
-		print(parents)
-	if DEBUG:
-		print(children)
-	if DEBUG:
-		print(siblings)
+	# if DEBUG:
+	# 	print(parents)
+	# if DEBUG:
+	# 	print(children)
+	# if DEBUG:
+	# 	print(siblings)
 
-	return parents, children, siblings
+	return parent_names, children_names, sibling_names
 
-def convert_to_tree(parents, children, siblings):
-	pass
 
-def process_relation_sentences(sentences):
+def check_mother(name, mother, text):
+    #print(text)
+    for i in range(len(text)):
+        if text[i] in mother:
+            sample = text[:i]
+            my_reg = r"[^ ]+'s mother .* mother, " + mother
+            #print(my_reg)
+            match_1 = re.match(my_reg, text) #.[^,.]+[,.]
+            match_2 = re.match(r"[^ ]+'s", text)
+            if match_1 is not None:
+                #print("______________________CHECK___________________________")
+                #print(match_1.group(0))
+                #print(match_2.group(0))
+                for part in name:
+                    if part in match_2.group(0):
+                        return False
+    return True
+            #for part in name:
+            #    if name in match_1
+            #match_2.strip("'s")
+
+def analyze_relations_2(name, filtered):
+    # I think this works better than the other one. Following this, after a match is found need to go back
+    # and check the sentence to ensure it is a good match. For instance, still getting grandomther as motehr. 
+    # That needs to be filtered out.
+    print("___________________________________RELATIONS 2______________________________________")
+    parents = set()
+    children = set()
+    siblings = set()
+    for sentence in filtered: 
+        matches = re.findall(r" daughter,.[^,.]+[,.]", sentence)
+        for match in matches:
+            if "(" in match or ")" in match:
+                match = re.sub(r'\([^)]*\)', '', match)
+            print("________________DAUGHTER__________________")
+            print(match)
+            print(sentence)
+            analyzed = nlp(match)
+            print(analyzed.ents)
+            for a in analyzed.ents:
+                if a.text in match and not any(map(str.isdigit, a.text)):
+                    #print(a.text)
+                    children.add(a.text)
+        matches = re.findall(r" son[ ,].[^,.]+[,.]", sentence)
+        for match in matches:
+            analyzed = nlp(match)
+            #print(analyzed.ents)
+            for a in analyzed.ents:
+                if a.text in match and not any(map(str.isdigit, a.text)):
+                    #print(a.text)
+                    children.add(a.text)
+        matches = re.findall(r" mother,.[^,.]+[,.]", sentence)
+        for match in matches:
+            analyzed = nlp(match)
+            #print(analyzed.ents)
+            for a in analyzed.ents:
+                if a.label_ == "PERSON":
+                    #print("______________MOTHER____________________________________")
+                    #print(sentence)
+                    #print(a.text)
+                    #tagged = nltk.pos_tag(nltk.word_tokenize(sentence))
+                    #print(tagged)
+                    #print(a.text)
+                    flag = check_mother(name, a.text, sentence)
+                    if flag:
+                        print("_____________ADDING RELATION________________")
+                        print(sentence)
+                        parents.add(a.text)
+        matches = re.findall(r" father,.[^,.]+[,.]", sentence)
+        for match in matches:
+            analyzed = nlp(match)
+            #print(analyzed.ents)
+            for a in analyzed.ents:
+                if a.text in match:
+                    #print(a.text)
+                    parents.add(a.text)
+        matches = re.findall(r"[- ]sister,.[^,.]+[,.]", sentence)
+        for match in matches:
+            analyzed = nlp(match)
+            print(match)
+            #print(analyzed.ents)
+            for a in analyzed.ents:
+                print(a.label_)
+                if a.text in match:    
+                    #print(a.text)
+                    siblings.add(a.text)
+                    print(siblings)
+        matches = re.findall(r"[- ]brother,.[^,.]+[,.]", sentence)
+        for match in matches:
+            analyzed = nlp(match)
+            #print(analyzed.ents)
+            for a in analyzed.ents:
+                if a.text in match: #a.label_ == "PERSON":
+                    #print(a.text)
+                    siblings.add(a.text)
+        matches = re.findall(r" children: [^.]+", sentence)
+        for match in matches:
+        #    print(matches.group(0))
+            analyzed = nlp(match)
+            #print(analyzed.ents)
+            for a in analyzed.ents:
+                if a.text in match and not any(map(str.isdigit, a.text)):
+                    #print(a.text)
+                    children.add(a.text)
+    return parents, children, siblings
+
+def process_relation_sentences(name, sentences):
 	"""Filters out sentences that does not contain a name, based on SpaCy. Returns set of sentences"""
 	if DEBUG:
 		print("___________________________________FILTERED______________________________________")
@@ -146,7 +250,15 @@ def process_relation_sentences(sentences):
 		if DEBUG:
 			print("________________________________")
 	
-	return analyze_relations(filtered)
+	parents_1, children_1, siblings_1 = analyze_relations_2(name, filtered)
+
+	parents_2, children_2, siblings_2 = analyze_relations(filtered)
+
+	parents = parents_1.union(parents_2)
+	children = children_1.union(children_2)
+	siblings = siblings_1.union(siblings_2)
+
+	return parents, children, siblings
 
 def process_text(name, text):
 	"""Takes name and text, sees what sentences are relevant and returns a Tree of
@@ -173,14 +285,26 @@ def process_text(name, text):
 
 	person = Person(name)
 
-	parents, children, siblings = process_relation_sentences(sentences)	
+	parents, children, siblings = process_relation_sentences(name, sentences)	
 
-	for p in parents:
+	for p_name in parents:
+		p = Person(p_name)
 		person.add_parent(p)
-		for sib in siblings:
-			p.add_child(sib)
-	
-	for c in children:
+
+	for sib_name in siblings:
+		sib = Person(sib_name)
+		
+		p1 = person.parent1
+		p2 = person.parent2
+
+		if p1 is not None:
+			p1.add_child(sib)
+		
+		if p2 is not None:
+			p2.add_child(sib)
+
+	for c_name in children:
+		c = Person(c_name)
 		person.add_child(c)
 	
 	return Tree(person)
@@ -192,6 +316,5 @@ def process_name(name) -> Optional[Tree]:
 		text = wiki.content
 		return process_text(name, text)
 	except Exception as e:
-		if DEBUG:
-			print(e)
+		print(e)
 		return None

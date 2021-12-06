@@ -21,7 +21,7 @@ def childs(p1: Optional[Person], p2: Optional[Person]) -> Set[Person]:
 
 def sanitize(s: str) -> str:
 	"""Sanitize string to be GEDCOM pointer acceptable"""
-	return s.replace(".", "").replace(",", "").replace(" ", "").replace("-", "")
+	return s.replace(".", "").replace(",", "").replace(" ", "").replace("-", "").replace("\"", "")
 
 class Person:
 	name: str
@@ -34,7 +34,7 @@ class Person:
 	children: Set[Person]
 
 	def __init__(self, name: str, sex: Optional[Sex] = None):
-		self.name = name
+		self.name = name.replace("\"", "").replace("\'", "")
 		self._id = uuid4()
 		if sex is None:
 			self.sex = approximate_sex(name.split()[0]) # approximate for first name before space
