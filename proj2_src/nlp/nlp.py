@@ -108,171 +108,81 @@ def analyze_relations(filtered):
 		children_names.update(names_with_synset(sentence, child_synsets))
 		sibling_names.update(names_with_synset(sentence, sibling_synsets))
 
-	# new_parents = [Person(name) for name in parent_names]
-	# parents = set(new_parents)
-
-	# new_childrens = [Person(name) for name in children_names]
-	# children = set(new_childrens)
-
-	# new_siblings = [Person(name) for name in sibling_names]
-	# siblings = set(new_siblings)
-
-	# if DEBUG:
-	# 	print(parents)
-	# if DEBUG:
-	# 	print(children)
-	# if DEBUG:
-	# 	print(siblings)
-
 	return parent_names, children_names, sibling_names
 
 
-def check_mother(name, mother, text):
-	#print(text)
-	for i in range(len(text)):
-		if text[i] in mother:
-			sample = text[:i]
-			my_reg = r"[^ ]+'s mother .* mother, " + mother
-			#print(my_reg)
-			match_1 = re.match(my_reg, text) #.[^,.]+[,.]
-			match_2 = re.match(r"[^ ]+'s", text)
-			if match_1 is not None:
-				#print("______________________CHECK___________________________")
-				#print(match_1.group(0))
-				#print(match_2.group(0))
-				for part in name:
-					if part in match_2.group(0):
-						return False
-	return True
-			#for part in name:
-			#    if name in match_1
-			#match_2.strip("'s")
+def check_not_about_person(text, person):
+	"""Checks that text does not descibe something about person, eg:
+		"...his son John's affair...
+	
+	returns true if it is not describing, i.e. we want it
+	""" 
 
-# def check_regex(word, sentence, s):
+	r1 = f"{person}'s"
 
+	# print("...", r1, r2, text, re.match(r1, text))
+
+	return re.match(r1, text) is None# and re.match(r2, text) is None
+
+	# for i in range(len(text)):
+	# 	if text[i] in match:
+	# 		sample = text[:i]
+	# 		# my_reg = f" + match
+	# 		#print(my_reg)
+	# 		match_1 = re.match(my_reg, text) #.[^,.]+[,.]
+	# 		match_2 = re.match(r"[^ ]+'s", text)
+	# 		if match_1 is not None:
+	# 			#print("______________________CHECK___________________________")
+	# 			#print(match_1.group(0))
+	# 			#print(match_2.group(0))
+	# 			for part in name:
+	# 				if part in match_2.group(0):
+	# 					return False
+	# return True
+	# 		#for part in name:
+	# 		#    if name in match_1
+	# 		#match_2.strip("'s")
+
+def check_regex(person: str, sentence: str, s: Set[str]):
+	if not check_not_about_person(sentence, person):
+		return
+
+	regex = f"[- ]{person}s?[^.]+[,.]"
+
+	matches = re.findall(regex, sentence)
+	for match in matches:
+		if "(" in match or ")" in match:
+			match = re.sub(r'\([^)]*\)', '', match)
+		analyzed = nlp(match)
+		for a in analyzed.ents:
+			if a.label_ == "PERSON":
+				print("MAYA:_", sentence, person, a.text)
+				s.add(a.text)
 
 def analyze_relations_2(name, filtered: List[str]):
 	# I think this works better than the other one. Following this, after a match is found need to go back
 	# and check the sentence to ensure it is a good match. For instance, still getting grandomther as motehr. 
 	# That needs to be filtered out.
 	print("___________________________________RELATIONS 2______________________________________")
-	parents = set()
-	children = set()
-	siblings = set()
+	parents: Set[str] = set()
+	children: Set[str] = set()
+	siblings: Set[str] = set()
 	for sentence in filtered: 
 		sanitized_sentence = sentence.replace("Sr.", "Sr").replace("Jr.", "Jr")
 		print("SAN: ", sanitized_sentence)
-		matches = re.findall(r" daughters?[^.]+[,.]", sentence)
-		for match in matches:
-			if "(" in match or ")" in match:
-				match = re.sub(r'\([^)]*\)', '', match)
-			print("________________DAUGHTER__________________")
-			print(match)
-			print(sentence)
-			# analyzed = nlp(match)
-			analyzed = nlp(match)
-			print(analyzed.ents)
-			max_people_dist = 3
-			curr_people_dist = 0
-			for a in analyzed.ents:
-				curr_people_dist += 1
-				if a.label_ == "PERSON" and match.index(a.text) < 20:
-				# if a.text in match and not any(map(str.isdigit, a.text)):
-					#print(a.text)
-					children.add(a.text)
-		matches = re.findall(r" sons?[^.]+[,.]", sanitized_sentence)
-		for match in matches:
-			# analyzed = nlp(match)
-			analyzed = nlp(match)
-			#print(analyzed.ents)
-			max_people_dist = 3
-			curr_people_dist = 0
-			for a in analyzed.ents:
-				curr_people_dist += 1
-				
-				if a.label_ == "PERSON" and match.index(a.text) < 20:
-				# if a.text in match and not any(map(str.isdigit, a.text)):
-					#print(a.text)
-					children.add(a.text)
-		matches = re.findall(r" mother[^.]+[,.]", sanitized_sentence)
-		for match in matches:
-			# analyzed = nlp(match)
-			analyzed = nlp(match)
-			#print(analyzed.ents)
-			max_people_dist = 3
-			curr_people_dist = 0
-			for a in analyzed.ents:
-				curr_people_dist += 1
-				if a.label_ == "PERSON" and match.index(a.text) < 20:
-					#print("______________MOTHER____________________________________")
-					#print(sentence)
-					#print(a.text)
-					#tagged = nltk.pos_tag(nltk.word_tokenize(sentence))
-					#print(tagged)
-					#print(a.text)
-					flag = check_mother(name, a.text, sentence)
-					if flag:
-						print("_____________ADDING RELATION________________")
-						print(sentence)
-						parents.add(a.text)
-		matches = re.findall(r" father[^.]+[,.]", sanitized_sentence)
-		for match in matches:
-			# analyzed = nlp(match)
-			analyzed = nlp(match)
-			#print(analyzed.ents)
-			max_people_dist = 3
-			curr_people_dist = 0
-			for a in analyzed.ents:
-				curr_people_dist += 1
-				if a.label_ == "PERSON" and match.index(a.text) < 20:
-				# if a.text in match:
-					#print(a.text)
-					parents.add(a.text)
-		matches = re.findall(r"[- ]sisters?[^.]+[,.]", sanitized_sentence)
-		for match in matches:
-			# analyzed = nlp(match)
-			analyzed = nlp(match)
-			print(match)
-			#print(analyzed.ents)
-			max_people_dist = 3
-			curr_people_dist = 0
-			for a in analyzed.ents:
-				curr_people_dist += 1
-				print(a.label_)
-				if a.label_ == "PERSON" and match.index(a.text) < 20:
-				# if a.text in match:    
-					#print(a.text)
-					siblings.add(a.text)
-					print(siblings)
-		matches = re.findall(r"[- ]brothers?[^.]+[,.]", sanitized_sentence)
-		for match in matches:
-			# analyzed = nlp(match)
-			analyzed = nlp(match)
-			#print(analyzed.ents)
-			max_people_dist = 3
-			curr_people_dist = 0
-			for a in analyzed.ents:
-				curr_people_dist += 1
-				if a.label_ == "PERSON" and match.index(a.text) < 20:
-				# if a.text in match: #a.label_ == "PERSON":
-					#print(a.text)
-					siblings.add(a.text)
-		matches = re.findall(r" child(?:ren)?[^.]+", sanitized_sentence)
-		for match in matches:
-		#    print(matches.group(0))
-			# analyzed = nlp(match)
-			analyzed = nlp(match)
-			#print(analyzed.ents)
-			if "Jr" in sanitized_sentence:
-				print("ENTS; ", analyzed.ents, match)
-			max_people_dist = 3
-			curr_people_dist = 0
-			for a in analyzed.ents:
-				curr_people_dist += 1
-				if a.label_ == "PERSON" and match.index(a.text) < 20:
-				# if a.text in match and not any(map(str.isdigit, a.text)):
-					#print(a.text)
-					children.add(a.text)
+
+		check_regex("daughter", sentence, children)
+		check_regex("son", sentence, children)
+		check_regex("child", sentence, children)
+		check_regex("children", sentence, children)
+
+		check_regex("father", sentence, parents)
+		check_regex("mother", sentence, parents)
+
+		check_regex("brother", sentence, siblings)
+		check_regex("sister", sentence, siblings)
+		check_regex("sibling", sentence, siblings)
+
 	return parents, children, siblings
 
 def process_relation_sentences(name, sentences):
