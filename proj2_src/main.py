@@ -58,7 +58,7 @@ splines = ortho;
 def main():
 	try:
 		name = input("Please Enter a Name: ")
-		# name = "Carl XVI Gustaf"
+		# name = "Queen Elizabeth II"
 
 		if len(name) < 1:
 			print("Must input a name")

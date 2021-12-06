@@ -1,4 +1,4 @@
-from typing import Set, Optional
+from typing import Set, Optional, List
 
 import wikipedia
 import sys
@@ -128,110 +128,152 @@ def analyze_relations(filtered):
 
 
 def check_mother(name, mother, text):
-    #print(text)
-    for i in range(len(text)):
-        if text[i] in mother:
-            sample = text[:i]
-            my_reg = r"[^ ]+'s mother .* mother, " + mother
-            #print(my_reg)
-            match_1 = re.match(my_reg, text) #.[^,.]+[,.]
-            match_2 = re.match(r"[^ ]+'s", text)
-            if match_1 is not None:
-                #print("______________________CHECK___________________________")
-                #print(match_1.group(0))
-                #print(match_2.group(0))
-                for part in name:
-                    if part in match_2.group(0):
-                        return False
-    return True
-            #for part in name:
-            #    if name in match_1
-            #match_2.strip("'s")
+	#print(text)
+	for i in range(len(text)):
+		if text[i] in mother:
+			sample = text[:i]
+			my_reg = r"[^ ]+'s mother .* mother, " + mother
+			#print(my_reg)
+			match_1 = re.match(my_reg, text) #.[^,.]+[,.]
+			match_2 = re.match(r"[^ ]+'s", text)
+			if match_1 is not None:
+				#print("______________________CHECK___________________________")
+				#print(match_1.group(0))
+				#print(match_2.group(0))
+				for part in name:
+					if part in match_2.group(0):
+						return False
+	return True
+			#for part in name:
+			#    if name in match_1
+			#match_2.strip("'s")
 
-def analyze_relations_2(name, filtered):
-    # I think this works better than the other one. Following this, after a match is found need to go back
-    # and check the sentence to ensure it is a good match. For instance, still getting grandomther as motehr. 
-    # That needs to be filtered out.
-    print("___________________________________RELATIONS 2______________________________________")
-    parents = set()
-    children = set()
-    siblings = set()
-    for sentence in filtered: 
-        matches = re.findall(r" daughter,.[^,.]+[,.]", sentence)
-        for match in matches:
-            if "(" in match or ")" in match:
-                match = re.sub(r'\([^)]*\)', '', match)
-            print("________________DAUGHTER__________________")
-            print(match)
-            print(sentence)
-            analyzed = nlp(match)
-            print(analyzed.ents)
-            for a in analyzed.ents:
-                if a.text in match and not any(map(str.isdigit, a.text)):
-                    #print(a.text)
-                    children.add(a.text)
-        matches = re.findall(r" son[ ,].[^,.]+[,.]", sentence)
-        for match in matches:
-            analyzed = nlp(match)
-            #print(analyzed.ents)
-            for a in analyzed.ents:
-                if a.text in match and not any(map(str.isdigit, a.text)):
-                    #print(a.text)
-                    children.add(a.text)
-        matches = re.findall(r" mother,.[^,.]+[,.]", sentence)
-        for match in matches:
-            analyzed = nlp(match)
-            #print(analyzed.ents)
-            for a in analyzed.ents:
-                if a.label_ == "PERSON":
-                    #print("______________MOTHER____________________________________")
-                    #print(sentence)
-                    #print(a.text)
-                    #tagged = nltk.pos_tag(nltk.word_tokenize(sentence))
-                    #print(tagged)
-                    #print(a.text)
-                    flag = check_mother(name, a.text, sentence)
-                    if flag:
-                        print("_____________ADDING RELATION________________")
-                        print(sentence)
-                        parents.add(a.text)
-        matches = re.findall(r" father,.[^,.]+[,.]", sentence)
-        for match in matches:
-            analyzed = nlp(match)
-            #print(analyzed.ents)
-            for a in analyzed.ents:
-                if a.text in match:
-                    #print(a.text)
-                    parents.add(a.text)
-        matches = re.findall(r"[- ]sister,.[^,.]+[,.]", sentence)
-        for match in matches:
-            analyzed = nlp(match)
-            print(match)
-            #print(analyzed.ents)
-            for a in analyzed.ents:
-                print(a.label_)
-                if a.text in match:    
-                    #print(a.text)
-                    siblings.add(a.text)
-                    print(siblings)
-        matches = re.findall(r"[- ]brother,.[^,.]+[,.]", sentence)
-        for match in matches:
-            analyzed = nlp(match)
-            #print(analyzed.ents)
-            for a in analyzed.ents:
-                if a.text in match: #a.label_ == "PERSON":
-                    #print(a.text)
-                    siblings.add(a.text)
-        matches = re.findall(r" children: [^.]+", sentence)
-        for match in matches:
-        #    print(matches.group(0))
-            analyzed = nlp(match)
-            #print(analyzed.ents)
-            for a in analyzed.ents:
-                if a.text in match and not any(map(str.isdigit, a.text)):
-                    #print(a.text)
-                    children.add(a.text)
-    return parents, children, siblings
+# def check_regex(word, sentence, s):
+
+
+def analyze_relations_2(name, filtered: List[str]):
+	# I think this works better than the other one. Following this, after a match is found need to go back
+	# and check the sentence to ensure it is a good match. For instance, still getting grandomther as motehr. 
+	# That needs to be filtered out.
+	print("___________________________________RELATIONS 2______________________________________")
+	parents = set()
+	children = set()
+	siblings = set()
+	for sentence in filtered: 
+		sanitized_sentence = sentence.replace("Sr.", "Sr").replace("Jr.", "Jr")
+		print("SAN: ", sanitized_sentence)
+		matches = re.findall(r" daughters?[^.]+[,.]", sentence)
+		for match in matches:
+			if "(" in match or ")" in match:
+				match = re.sub(r'\([^)]*\)', '', match)
+			print("________________DAUGHTER__________________")
+			print(match)
+			print(sentence)
+			# analyzed = nlp(match)
+			analyzed = nlp(match)
+			print(analyzed.ents)
+			max_people_dist = 3
+			curr_people_dist = 0
+			for a in analyzed.ents:
+				curr_people_dist += 1
+				if a.label_ == "PERSON" and match.index(a.text) < 20:
+				# if a.text in match and not any(map(str.isdigit, a.text)):
+					#print(a.text)
+					children.add(a.text)
+		matches = re.findall(r" sons?[^.]+[,.]", sanitized_sentence)
+		for match in matches:
+			# analyzed = nlp(match)
+			analyzed = nlp(match)
+			#print(analyzed.ents)
+			max_people_dist = 3
+			curr_people_dist = 0
+			for a in analyzed.ents:
+				curr_people_dist += 1
+				
+				if a.label_ == "PERSON" and match.index(a.text) < 20:
+				# if a.text in match and not any(map(str.isdigit, a.text)):
+					#print(a.text)
+					children.add(a.text)
+		matches = re.findall(r" mother[^.]+[,.]", sanitized_sentence)
+		for match in matches:
+			# analyzed = nlp(match)
+			analyzed = nlp(match)
+			#print(analyzed.ents)
+			max_people_dist = 3
+			curr_people_dist = 0
+			for a in analyzed.ents:
+				curr_people_dist += 1
+				if a.label_ == "PERSON" and match.index(a.text) < 20:
+					#print("______________MOTHER____________________________________")
+					#print(sentence)
+					#print(a.text)
+					#tagged = nltk.pos_tag(nltk.word_tokenize(sentence))
+					#print(tagged)
+					#print(a.text)
+					flag = check_mother(name, a.text, sentence)
+					if flag:
+						print("_____________ADDING RELATION________________")
+						print(sentence)
+						parents.add(a.text)
+		matches = re.findall(r" father[^.]+[,.]", sanitized_sentence)
+		for match in matches:
+			# analyzed = nlp(match)
+			analyzed = nlp(match)
+			#print(analyzed.ents)
+			max_people_dist = 3
+			curr_people_dist = 0
+			for a in analyzed.ents:
+				curr_people_dist += 1
+				if a.label_ == "PERSON" and match.index(a.text) < 20:
+				# if a.text in match:
+					#print(a.text)
+					parents.add(a.text)
+		matches = re.findall(r"[- ]sisters?[^.]+[,.]", sanitized_sentence)
+		for match in matches:
+			# analyzed = nlp(match)
+			analyzed = nlp(match)
+			print(match)
+			#print(analyzed.ents)
+			max_people_dist = 3
+			curr_people_dist = 0
+			for a in analyzed.ents:
+				curr_people_dist += 1
+				print(a.label_)
+				if a.label_ == "PERSON" and match.index(a.text) < 20:
+				# if a.text in match:    
+					#print(a.text)
+					siblings.add(a.text)
+					print(siblings)
+		matches = re.findall(r"[- ]brothers?[^.]+[,.]", sanitized_sentence)
+		for match in matches:
+			# analyzed = nlp(match)
+			analyzed = nlp(match)
+			#print(analyzed.ents)
+			max_people_dist = 3
+			curr_people_dist = 0
+			for a in analyzed.ents:
+				curr_people_dist += 1
+				if a.label_ == "PERSON" and match.index(a.text) < 20:
+				# if a.text in match: #a.label_ == "PERSON":
+					#print(a.text)
+					siblings.add(a.text)
+		matches = re.findall(r" child(?:ren)?[^.]+", sanitized_sentence)
+		for match in matches:
+		#    print(matches.group(0))
+			# analyzed = nlp(match)
+			analyzed = nlp(match)
+			#print(analyzed.ents)
+			if "Jr" in sanitized_sentence:
+				print("ENTS; ", analyzed.ents, match)
+			max_people_dist = 3
+			curr_people_dist = 0
+			for a in analyzed.ents:
+				curr_people_dist += 1
+				if a.label_ == "PERSON" and match.index(a.text) < 20:
+				# if a.text in match and not any(map(str.isdigit, a.text)):
+					#print(a.text)
+					children.add(a.text)
+	return parents, children, siblings
 
 def process_relation_sentences(name, sentences):
 	"""Filters out sentences that does not contain a name, based on SpaCy. Returns set of sentences"""
@@ -239,9 +281,14 @@ def process_relation_sentences(name, sentences):
 		print("___________________________________FILTERED______________________________________")
 	filtered = set()
 	for sentence in sentences:
+		# Remove all "(born 2012) etc"
+		sentence = re.sub(r' \(born \d+\)', '', sentence)
 		analyzed = nlp(sentence)
+		max_people_dist = 3
+		curr_people_dist = 0
 		for a in analyzed.ents:
-			if a.label_ == "PERSON":
+			curr_people_dist += 1
+			if a.label_ == "PERSON" or a.label_ == "ORG":
 				filtered.add(sentence)
 				break
 	for sentence in filtered:
@@ -291,6 +338,7 @@ def process_text(name, text):
 		p = Person(p_name)
 		person.add_parent(p)
 
+	# Assume all siblings are full siblings
 	for sib_name in siblings:
 		sib = Person(sib_name)
 		
@@ -313,7 +361,8 @@ def process_name(name) -> Optional[Tree]:
 	"""Takes name and returns a tree, if it can be created"""
 	try:
 		wiki = wikipedia.page(name, auto_suggest=False)
-		text = wiki.content
+		# Replace some weird comma with regular comma
+		text = wiki.content.replace(".", ". ").replace("‚", ",")
 		return process_text(name, text)
 	except Exception as e:
 		print(e)
