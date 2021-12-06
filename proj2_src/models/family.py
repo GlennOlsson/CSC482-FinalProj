@@ -19,6 +19,10 @@ def childs(p1: Optional[Person], p2: Optional[Person]) -> Set[Person]:
 
 	return p1_c.intersection(p2_c)
 
+def sanitize(s: str) -> str:
+	"""Sanitize string to be GEDCOM pointer acceptable"""
+	return s.replace(".", "").replace(",", "").replace(" ", "").replace("-", "")
+
 class Person:
 	name: str
 	sex: Sex
@@ -80,12 +84,11 @@ class Person:
 		return families
 	
 	def identifier(self) -> str:
-		id_str = str(self._id).replace(".", "").replace("-", "")
-		return f'{self.name.replace(" ", "")}{id_str}'
+		return f'{sanitize(self.name)}{self._id.int}'
 
 	def pointer(self) -> str:
 		"""Return a suiting GEDCOM pointer"""
-		return f'@{self.identifier()}@'
+		return f'@{self.identifier()[:40]}@'
 	
 	def __hash__(self) -> int:
 		return hash(self._id)
@@ -149,7 +152,9 @@ class Family:
 		husb = self.husband.name if self.husband is not None else "NoHusb"
 		wife = self.wife.name if self.wife is not None else "NoWife"
 
-		return f'@{husb.replace(" ", "")}AND{wife.replace(" ", "")}@'
+		name = f"{sanitize(husb)}AND{sanitize(wife)}"
+
+		return f'@{name[:40]}@'
 	
 	def __eq__(self, o):
 		if type(o) is not Family:

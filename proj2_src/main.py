@@ -59,6 +59,12 @@ def main():
 	try:
 		name = input("Please Enter a Name: ")
 		# name = "Carl XVI Gustaf"
+
+		if len(name) < 1:
+			print("Must input a name")
+			main()
+			return
+
 		tree: Optional[Tree] = nlp.process_name(name)
 
 		if tree is None:
