@@ -2,7 +2,7 @@
 from proj2_src.models.family import Person, Family
 from proj2_src.models.tree import Tree
 
-from proj2_src.gd.gedcom import generate_gedcom
+from proj2_src.ged.gedcom import generate_gedcom
 
 from typing import Set, Tuple, Optional
 

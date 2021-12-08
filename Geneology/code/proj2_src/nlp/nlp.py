@@ -12,10 +12,6 @@ from proj2_src.models.family import Person
 from proj2_src.models.tree import Tree
 from proj2_src.models.sex import Sex
 
-import os
-
-DEBUG = os.environ['DEBUG'] == "True"
-
 nlp = spacy.load("en_core_web_sm")
 
 father_synset = wn.synset("father.n.01")
